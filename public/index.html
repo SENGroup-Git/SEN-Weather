@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SEN Weather Scripts</title>
+<style>
+  :root {
+    --sen-navy: #0F2131;
+    --sen-navy-light: #17304a;
+    --sen-sky: #38B6FF;
+    --sen-yellow: #FFD85D;
+    --text-primary: #F2F5F8;
+    --text-muted: #9FB3C8;
+    --card-border: #223b52;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--sen-navy);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 28px 32px 20px;
+    border-bottom: 1px solid var(--card-border);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 22px;
+    letter-spacing: 0.02em;
+  }
+
+  header h1 span {
+    color: var(--sen-yellow);
+  }
+
+  .meta {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .meta strong {
+    color: var(--sen-sky);
+  }
+
+  #refresh {
+    background: var(--sen-sky);
+    color: var(--sen-navy);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  #refresh:hover { opacity: 0.85; }
+
+  main {
+    padding: 24px 32px 60px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--sen-navy-light);
+    border: 1px solid var(--card-border);
+    border-radius: 6px;
+    padding: 16px 18px;
+  }
+
+  .card .code {
+    color: var(--sen-yellow);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .card .show {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .card .lines p {
+    margin: 0 0 8px;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  .card .lines p:last-child { margin-bottom: 0; }
+
+  .status {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 60px 20px;
+    font-size: 15px;
+  }
+
+  .error-banner {
+    background: #4a1f1f;
+    border: 1px solid #7a3a3a;
+    color: #ffdcdc;
+    padding: 10px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SEN Weather <span>Scripts</span></h1>
+  <div class="meta" id="meta">Loading…</div>
+  <button id="refresh">Refresh</button>
+</header>
+
+<main>
+  <div id="content" class="status">Loading latest scripts…</div>
+</main>
+
+<script>
+  async function loadScripts() {
+    const content = document.getElementById('content');
+    const meta = document.getElementById('meta');
+    content.innerHTML = '<div class="status">Loading latest scripts…</div>';
+
+    try {
+      const res = await fetch('/.netlify/functions/get-scripts');
+      if (!res.ok) {
+        if (res.status === 404) {
+          content.innerHTML = '<div class="status">No scripts generated yet. The first scheduled run will populate this page.</div>';
+          meta.textContent = '';
+          return;
+        }
+        throw new Error('Request failed: ' + res.status);
+      }
+      const data = await res.json();
+
+      const generated = new Date(data.generatedAt);
+      meta.innerHTML = data.runDescription + ' &middot; generated <strong>' +
+        generated.toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' }) + '</strong>';
+
+      let html = '';
+      if (data.errors && data.errors.length > 0) {
+        html += '<div class="error-banner">' + data.errors.length +
+          ' script(s) could not be generated this run - check the codes below for placeholder text.</div>';
+      }
+
+      html += '<div class="grid">';
+      for (const script of data.scripts) {
+        html += '<div class="card">';
+        html += '<div class="code">' + script.code + '</div>';
+        html += '<div class="show">' + script.show + '</div>';
+        html += '<div class="lines">';
+        for (const line of script.lines) {
+          html += '<p>' + line + '</p>';
+        }
+        html += '</div></div>';
+      }
+      html += '</div>';
+
+      content.innerHTML = html;
+    } catch (err) {
+      content.innerHTML = '<div class="status">Could not load scripts: ' + err.message + '</div>';
+    }
+  }
+
+  document.getElementById('refresh').addEventListener('click', loadScripts);
+  loadScripts();
+</script>
+
+</body>
+</html>
