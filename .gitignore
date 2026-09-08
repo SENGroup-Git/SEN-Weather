@@ -1,0 +1,5 @@
+# Local Netlify folder
+.netlify
+
+# Dependencies (regenerate with `npm install`)
+node_modules

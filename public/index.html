@@ -6,104 +6,160 @@
 <title>SEN Weather Scripts</title>
 <style>
   :root {
-    --sen-navy: #0F2131;
-    --sen-navy-light: #17304a;
-    --sen-sky: #38B6FF;
     --sen-yellow: #FFD85D;
+    --sen-sky: #38B6FF;
     --text-primary: #F2F5F8;
-    --text-muted: #9FB3C8;
-    --card-border: #223b52;
+    --text-muted: rgba(242, 245, 248, 0.68);
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-bg-strong: rgba(255, 255, 255, 0.14);
+    --glass-border: rgba(255, 255, 255, 0.18);
+    --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
   * { box-sizing: border-box; }
 
   body {
     margin: 0;
-    background: var(--sen-navy);
+    min-height: 100vh;
     color: var(--text-primary);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-    min-height: 100vh;
+    background:
+      linear-gradient(180deg, rgba(6, 20, 33, 0.6), rgba(6, 20, 33, 0.85)),
+      url("https://images.unsplash.com/photo-1590867286251-8e26d9f255c0?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D") center / cover no-repeat fixed;
+  }
+
+  .glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    box-shadow: var(--glass-shadow);
   }
 
   header {
-    padding: 28px 32px 20px;
-    border-bottom: 1px solid var(--card-border);
+    margin: 24px 24px 16px;
+    padding: 18px 24px;
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 14px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .brand .logo {
+    height: 26px;
+    width: auto;
+    display: block;
+    filter: brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
   }
 
   header h1 {
     margin: 0;
-    font-size: 22px;
+    font-size: 20px;
     letter-spacing: 0.02em;
   }
 
-  header h1 span {
-    color: var(--sen-yellow);
-  }
+  header h1 span { color: var(--sen-yellow); }
 
   .meta {
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: 13px;
   }
 
-  .meta strong {
-    color: var(--sen-sky);
-  }
+  .meta strong { color: var(--sen-sky); }
 
   #refresh {
-    background: var(--sen-sky);
-    color: var(--sen-navy);
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
+    background: var(--glass-bg-strong);
+    color: var(--text-primary);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 9px 20px;
+    border-radius: 999px;
     font-weight: 600;
     cursor: pointer;
     font-size: 13px;
   }
 
-  #refresh:hover { opacity: 0.85; }
+  #refresh:hover { background: rgba(255, 255, 255, 0.22); }
 
   main {
-    padding: 24px 32px 60px;
-    max-width: 1100px;
+    padding: 8px 24px 60px;
+    max-width: 1200px;
     margin: 0 auto;
   }
 
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 18px;
   }
 
   .card {
-    background: var(--sen-navy-light);
-    border: 1px solid var(--card-border);
-    border-radius: 6px;
-    padding: 16px 18px;
+    padding: 20px 22px;
+    transition: transform 0.15s ease, background 0.15s ease;
   }
 
+  .card:hover {
+    transform: translateY(-3px);
+    background: var(--glass-bg-strong);
+  }
+
+  .card .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .card .icon {
+    width: 34px;
+    height: 34px;
+    color: var(--sen-yellow);
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+  }
+  .card .icon svg { width: 100%; height: 100%; }
+
   .card .code {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid var(--glass-border);
     color: var(--sen-yellow);
     font-size: 11px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
   }
 
   .card .show {
     color: var(--text-muted);
     font-size: 12px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
 
   .card .lines p {
     margin: 0 0 8px;
-    font-size: 15px;
     line-height: 1.45;
+  }
+
+  .card .lines p:first-child {
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .card .lines p:not(:first-child) {
+    font-size: 14px;
+    color: var(--text-muted);
   }
 
   .card .lines p:last-child { margin-bottom: 0; }
@@ -116,20 +172,21 @@
   }
 
   .error-banner {
-    background: #4a1f1f;
-    border: 1px solid #7a3a3a;
     color: #ffdcdc;
-    padding: 10px 16px;
-    border-radius: 4px;
+    padding: 12px 18px;
     font-size: 13px;
     margin-bottom: 20px;
+    border-color: rgba(255, 120, 120, 0.35);
   }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>SEN Weather <span>Scripts</span></h1>
+<header class="glass">
+  <div class="brand">
+    <img src="/assets/sen-logo.png" alt="SEN" class="logo" />
+    <h1>Weather <span>Scripts</span></h1>
+  </div>
   <div class="meta" id="meta">Loading…</div>
   <button id="refresh">Refresh</button>
 </header>
@@ -139,6 +196,34 @@
 </main>
 
 <script>
+  const ICONS = {
+    sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>',
+    cloud: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.4-1.5A4.5 4.5 0 0 0 6.5 19h11z"/></svg>',
+    cloudSun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="17.5" cy="6.5" r="3"/><path d="M17.5 1.7v1.3M22.3 6.5H21M13.7 6.5h-1.3M20.6 3.4l-.9.9M15.3 8.7l-.9.9"/><path d="M15.5 19a4 4 0 0 0 0-8 .9.9 0 0 0-.2 0A5.3 5.3 0 0 0 6 9.8 4 4 0 0 0 5.5 19h10z"/></svg>',
+    cloudRain: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 13a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.6-1A4 4 0 0 0 6.5 13h10z"/><path d="M8 16.5 7 19M12 16.5l-1 2.5M16 16.5l-1 2.5"/></svg>',
+    cloudStorm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 13a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.6-1A4 4 0 0 0 6.5 13h10z"/><path d="M13 14.5l-3 4h2.5l-2 4"/></svg>',
+    wind: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10.5a2.3 2.3 0 1 0-2-3.4M3 12.5h14.5a2.3 2.3 0 1 1-2 3.4M3 17h8"/></svg>',
+  };
+
+  // Checks lines in order and stops at the first one that mentions a
+  // condition, so the icon reflects today (line 1) rather than a later
+  // day's forecast further down the card. The one exception is the
+  // multiTown format, whose first line is just a static "Checking X
+  // weather" header with no condition in it - that falls through to the
+  // next line automatically since no keyword matches there.
+  function iconForLines(lines) {
+    for (const line of lines) {
+      const text = line.toLowerCase();
+      if (/storm|thunder/.test(text)) return ICONS.cloudStorm;
+      if (/rain|shower/.test(text)) return ICONS.cloudRain;
+      if (/wind/.test(text)) return ICONS.wind;
+      if (/partly cloudy/.test(text)) return ICONS.cloudSun;
+      if (/cloud|overcast/.test(text)) return ICONS.cloud;
+      if (/sunny|fine|clear/.test(text)) return ICONS.sun;
+    }
+    return ICONS.cloudSun;
+  }
+
   async function loadScripts() {
     const content = document.getElementById('content');
     const meta = document.getElementById('meta');
@@ -162,14 +247,17 @@
 
       let html = '';
       if (data.errors && data.errors.length > 0) {
-        html += '<div class="error-banner">' + data.errors.length +
+        html += '<div class="glass error-banner">' + data.errors.length +
           ' script(s) could not be generated this run - check the codes below for placeholder text.</div>';
       }
 
       html += '<div class="grid">';
       for (const script of data.scripts) {
-        html += '<div class="card">';
+        html += '<div class="glass card">';
+        html += '<div class="card-top">';
+        html += '<div class="icon">' + iconForLines(script.lines) + '</div>';
         html += '<div class="code">' + script.code + '</div>';
+        html += '</div>';
         html += '<div class="show">' + script.show + '</div>';
         html += '<div class="lines">';
         for (const line of script.lines) {
