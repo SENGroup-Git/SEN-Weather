@@ -230,7 +230,7 @@
     content.innerHTML = '<div class="status">Loading latest scripts…</div>';
 
     try {
-      const res = await fetch('/.netlify/functions/get-scripts');
+      const res = await fetch('/api/get-scripts');
       if (!res.ok) {
         if (res.status === 404) {
           content.innerHTML = '<div class="status">No scripts generated yet. The first scheduled run will populate this page.</div>';

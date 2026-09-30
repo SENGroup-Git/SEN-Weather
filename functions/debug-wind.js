@@ -1,15 +1,15 @@
 /**
- * netlify/functions/debug-wind.js
+ * functions/debug-wind.js
  *
  * TEMPORARY debug tool - returns the raw WillyWeather wind forecast for
  * Melbourne so we can confirm the actual field names and fix
  * lib/willyweather.js's parseWindDay(). Safe to delete once wind is
  * showing correctly in the real VICTWTHR output.
  *
- * Usage: /.netlify/functions/debug-wind?key=YOUR_GENERATE_SECRET
+ * Usage: /api/debug-wind?key=YOUR_GENERATE_SECRET
  */
 
-const { searchLocation } = require('../../lib/willyweather');
+const { searchLocation } = require('../lib/willyweather');
 
 exports.handler = async (event) => {
   const params = event.queryStringParameters || {};

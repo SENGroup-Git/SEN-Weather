@@ -3,35 +3,51 @@
 Generates the 20 on-air weather script codes twice a day (5am for today,
 4:30pm for tomorrow) and displays them on a single password-gated page.
 
+Runs as a plain Node app on Azure App Service (Linux) - no Netlify, no
+external functions platform. `server.js` is the single entry point: it
+serves the static page, handles the three API routes, and runs an
+in-process scheduler that checks Melbourne local time every minute.
+
 ## Setup
 
-1. **Add this folder to your existing Netlify site's repo** (the one you're
-   already hosting on), or push it as its own site - either works, since it's
-   fully self-contained.
+1. **App Service** - Node 22 LTS, Linux. `package.json`'s `start` script
+   (`node server.js`) is picked up automatically, no custom startup command
+   needed.
 
-2. **Install dependencies** (run once, commit the resulting `package-lock.json`):
-   ```
-   npm install
-   ```
-
-3. **Environment variables** - set these in Netlify: Site configuration →
+2. **Environment variables** - set these in App Service -> Configuration ->
    Environment variables:
    - `WILLYWEATHER_API_KEY` - your WillyWeather API key
-   - `GENERATE_SECRET` - any random string, used to protect the manual test endpoint
-   - `NETLIFY_SITE_ID` - your project's Site ID (shown in the `netlify init` output
-     as "Project ID", or on the site dashboard under Site configuration -> General)
-   - `NETLIFY_API_TOKEN` - a Personal Access Token: click your account avatar (top
-     right of the Netlify dashboard) -> User settings -> Applications -> Personal
-     access tokens -> New access token. Needed because Netlify Blobs' zero-config
-     auto-detection doesn't reliably pick up site context on manual/CLI deploys
-     that skip Netlify's Git-based build pipeline - see `lib/blobStore.js`.
+   - `GENERATE_SECRET` - any random string, used to protect the manual test
+     endpoint (`/api/generate-now`, `/api/debug-wind`)
+   - `SITE_PASSWORD` - the shared password for the site's Basic-Auth gate.
+     Leave unset to disable the gate entirely (useful while testing).
 
-4. **Set the site password** - edit `public/_headers` and replace
-   `CHANGE_THIS_PASSWORD` with a real shared password before deploying.
+3. **Continuous deployment** - App Service -> Deployment Center -> connect
+   the GitHub repo and branch. Every push then auto-builds and redeploys.
 
-5. **Enable Scheduled Functions** if your Netlify account hasn't already -
-   this is on by default for most accounts, but check Site configuration →
-   Environment variables / Functions if the scheduled function doesn't fire.
+4. **Data persistence** - the latest generated batch is written to
+   `/home/data/latest.json` (see `lib/dataStore.js`). Anything under
+   `/home` on Linux App Service survives restarts and redeploys, unlike
+   `/home/site/wwwroot` (the deployed code itself), so this is safe across
+   deploys as long as you stay on a single instance (no scale-out).
+
+5. **Always On** - on the Free (F1) tier the app can go to sleep when idle,
+   which pauses the in-process scheduler too. Upgrade to Basic (B1) or
+   higher and enable Always On (Configuration -> General settings) before
+   relying on the 5am/10am/4:30pm schedule actually firing unattended.
+
+## Local development
+
+```
+npm install
+node scripts/local-server.js
+```
+
+Then open http://localhost:8888. This uses made-up weather data by default
+(`WILLYWEATHER_MOCK=true`) and a placeholder `GENERATE_SECRET`
+(`local-dev-secret`) so it works with no real API key - see
+`scripts/local-server.js`. It runs the exact same `server.js` Azure does,
+just with those two defaults pre-set.
 
 ## Testing before relying on the schedule
 
@@ -39,9 +55,9 @@ Don't wait to see if it works. Hit the manual trigger once deployed, once
 for each of the three run types:
 
 ```
-https://YOUR-SITE.netlify.app/.netlify/functions/generate-now?key=YOUR_GENERATE_SECRET&run=am
-https://YOUR-SITE.netlify.app/.netlify/functions/generate-now?key=YOUR_GENERATE_SECRET&run=afternoon
-https://YOUR-SITE.netlify.app/.netlify/functions/generate-now?key=YOUR_GENERATE_SECRET&run=pm
+https://YOUR-APP.azurewebsites.net/api/generate-now?key=YOUR_GENERATE_SECRET&run=am
+https://YOUR-APP.azurewebsites.net/api/generate-now?key=YOUR_GENERATE_SECRET&run=afternoon
+https://YOUR-APP.azurewebsites.net/api/generate-now?key=YOUR_GENERATE_SECRET&run=pm
 ```
 
 - `am` - today's forecast, 5am read style ("heading for a top of X")
@@ -50,19 +66,19 @@ https://YOUR-SITE.netlify.app/.netlify/functions/generate-now?key=YOUR_GENERATE_
 - `pm` - tomorrow's forecast, 4:30pm read style (recorded in advance, same
   phrasing as `am` but for the next day)
 
-Then load the site's homepage (behind the Basic-Auth prompt) to confirm
-whichever you last generated appears correctly.
+Then load the site's homepage (behind the Basic-Auth prompt, if
+`SITE_PASSWORD` is set) to confirm whichever you last generated appears
+correctly.
 
 ## Things to verify / likely to need adjusting
 
 - **WillyWeather field names** (`lib/willyweather.js`): temperature/precis
   parsing is confirmed against a live response. Wind field names
   (direction/speed, used for VICTWTHR only) are NOT yet confirmed - run
-  `/.netlify/functions/debug-wind?key=YOUR_GENERATE_SECRET` once deployed,
-  check the raw response, and adjust `parseWindDay()` in
-  `lib/willyweather.js` if the field names differ (same process used to
-  fix temperature parsing originally). Delete `debug-wind.js` once
-  confirmed working, same as `debug-forecast.js` before it.
+  `/api/debug-wind?key=YOUR_GENERATE_SECRET` once deployed, check the raw
+  response, and adjust `parseWindDay()` in `lib/willyweather.js` if the
+  field names differ (same process used to fix temperature parsing
+  originally). Delete `debug-wind.js` once confirmed working.
 - **Location IDs** (`lib/locations.js`): every town currently does a live
   `search.json` lookup by name each run (cheap, but adds a small delay).
   Once you've confirmed each search resolves to the right town, you can
@@ -79,13 +95,17 @@ whichever you last generated appears correctly.
 
 ## Files
 
+- `server.js` - single entry point: static file server, API routes, and
+  the in-process schedule checker (5am / 10am / 4:30pm Melbourne time)
 - `lib/locations.js` - the 20 show codes and their town/label config
 - `lib/willyweather.js` - WillyWeather API client
 - `lib/templates.js` - turns forecasts into script lines per format type
 - `lib/dates.js` - Melbourne-timezone-aware date helpers
-- `lib/generate.js` - orchestrates one full run and saves to Blobs
-- `netlify/functions/scheduled-weather.js` - the scheduled trigger (DST-safe)
-- `netlify/functions/get-scripts.js` - serves the latest batch to the page
-- `netlify/functions/generate-now.js` - manual test trigger
+- `lib/generate.js` - orchestrates one full run and saves to the data store
+- `lib/dataStore.js` - filesystem-backed JSON store (Azure Blobs stand-in)
+- `functions/get-scripts.js` - serves the latest batch to the page
+- `functions/generate-now.js` - manual test trigger
+- `functions/debug-wind.js` - temporary wind-field debug endpoint
 - `public/index.html` - the display page
-- `public/_headers` - Basic-Auth password gate (free-plan compatible)
+- `scripts/local-server.js` - local dev launcher (mock data, no API key
+  needed)

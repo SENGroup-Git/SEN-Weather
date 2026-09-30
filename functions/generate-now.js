@@ -1,17 +1,17 @@
 /**
- * netlify/functions/generate-now.js
+ * functions/generate-now.js
  *
  * Manual trigger for testing - lets you run generation on demand instead
  * of waiting for the schedule. Protected by a shared secret so it can't be
  * hit anonymously even though the site is also Basic-Auth gated.
  *
- * Usage: /.netlify/functions/generate-now?key=YOUR_SECRET&run=am
+ * Usage: /api/generate-now?key=YOUR_SECRET&run=am
  * `run` is one of: am (5am/today), afternoon (10am/today-overnight-style),
  * pm (4:30pm/tomorrow). Defaults to "am" if omitted.
- * Set GENERATE_SECRET in Netlify environment variables.
+ * Set GENERATE_SECRET in App Service -> Configuration -> Environment variables.
  */
 
-const { generateAll } = require('../../lib/generate');
+const { generateAll } = require('../lib/generate');
 
 exports.handler = async (event) => {
   const params = event.queryStringParameters || {};

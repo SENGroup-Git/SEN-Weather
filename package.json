@@ -2,8 +2,10 @@
   "name": "sen-weather",
   "version": "1.0.0",
   "private": true,
-  "dependencies": {
-    "@netlify/blobs": "^8.1.0",
-    "@netlify/functions": "^2.8.1"
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "start": "node server.js"
   }
 }

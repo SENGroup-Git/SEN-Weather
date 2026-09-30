@@ -1,12 +1,12 @@
 /**
- * netlify/functions/get-scripts.js
+ * functions/get-scripts.js
  *
  * Read-only endpoint the display page calls to get the latest generated
- * batch of scripts. Also gated by the site's Basic-Auth rule in
- * public/_headers.
+ * batch of scripts. The site itself is gated by server.js's Basic-Auth
+ * middleware.
  */
 
-const { getWeatherStore } = require('../../lib/blobStore');
+const { getWeatherStore } = require('../lib/dataStore');
 
 exports.handler = async () => {
   const store = getWeatherStore();

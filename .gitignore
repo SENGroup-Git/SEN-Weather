@@ -1,8 +1,8 @@
-# Local Netlify folder
-.netlify
-
 # Dependencies (regenerate with `npm install`)
 node_modules
+
+# Local file-based data store (lib/dataStore.js)
+.data/
 
 # Azure App Onboard session artifacts (may hold deploy secrets)
 .copilot-azure/
