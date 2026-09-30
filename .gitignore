@@ -3,3 +3,6 @@
 
 # Dependencies (regenerate with `npm install`)
 node_modules
+
+# Azure App Onboard session artifacts (may hold deploy secrets)
+.copilot-azure/

@@ -1,7 +1,7 @@
 # SEN Weather Scripts
 
 Generates the 20 on-air weather script codes twice a day (5am for today,
-3pm for tomorrow) and displays them on a single password-gated page.
+4:30pm for tomorrow) and displays them on a single password-gated page.
 
 ## Setup
 
@@ -47,7 +47,7 @@ https://YOUR-SITE.netlify.app/.netlify/functions/generate-now?key=YOUR_GENERATE_
 - `am` - today's forecast, 5am read style ("heading for a top of X")
 - `afternoon` - today's remaining forecast, 10am read style ("rest of the
   day... overnight low of X")
-- `pm` - tomorrow's forecast, 3pm read style (recorded in advance, same
+- `pm` - tomorrow's forecast, 4:30pm read style (recorded in advance, same
   phrasing as `am` but for the next day)
 
 Then load the site's homepage (behind the Basic-Auth prompt) to confirm

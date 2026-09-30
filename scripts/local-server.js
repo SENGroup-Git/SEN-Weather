@@ -18,6 +18,7 @@ const path = require('node:path');
 const { BlobsServer } = require('@netlify/blobs/server');
 
 if (process.env.WILLYWEATHER_MOCK === undefined) process.env.WILLYWEATHER_MOCK = 'true';
+if (process.env.GENERATE_SECRET === undefined) process.env.GENERATE_SECRET = 'local-dev-secret';
 
 const PORT = process.env.PORT || 8888;
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');

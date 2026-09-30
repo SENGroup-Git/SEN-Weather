@@ -7,7 +7,7 @@
  *
  * Usage: /.netlify/functions/generate-now?key=YOUR_SECRET&run=am
  * `run` is one of: am (5am/today), afternoon (10am/today-overnight-style),
- * pm (3pm/tomorrow). Defaults to "am" if omitted.
+ * pm (4:30pm/tomorrow). Defaults to "am" if omitted.
  * Set GENERATE_SECRET in Netlify environment variables.
  */
 
