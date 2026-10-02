@@ -1,11 +1,17 @@
 {
   "name": "sen-weather",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
+  "main": "src/functions/*.js",
   "engines": {
-    "node": "22.x"
+    "node": "24.x"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.6.0",
+    "@azure/identity": "^4.5.0",
+    "@azure/storage-blob": "^12.26.0"
   }
 }

@@ -1,8 +1,17 @@
 # Dependencies (regenerate with `npm install`)
 node_modules
 
-# Local file-based data store (lib/dataStore.js)
+# Local Azure Functions settings - contains secrets, never commit
+local.settings.json
+
+# Azurite local storage emulator data
+__azurite_db*
+__blobstorage__
+__queuestorage__
+
+# Old local file-based data store
 .data/
 
 # Azure App Onboard session artifacts (may hold deploy secrets)
 .copilot-azure/
+.vscode/
