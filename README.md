@@ -14,17 +14,17 @@ Previously a Netlify site, then briefly a test Azure Web App (`weatherappsen`).
 | Page | `src/functions/site.js` + `public/` | Serves the display page and logo |
 | Data endpoint | `src/functions/getScripts.js` | `GET /api/get-scripts` - returns the latest batch |
 | Manual trigger | `src/functions/generateNow.js` | `GET /api/generate-now?key=SECRET&run=am` |
-| Wind debug (temporary) | `src/functions/debugWind.js` | `GET /api/debug-wind?key=SECRET` |
 | Storage | `lib/dataStore.js` | Saves `latest.json` to the `sen-weather` blob container |
 | Weather logic | `lib/` (everything else) | Forecast fetching, templates, dates, locations |
 
 ## App settings (Function App -> Settings -> Environment variables)
 
 - `WILLYWEATHER_API_KEY` - the WillyWeather API key
-- `GENERATE_SECRET` - long random letters/numbers; protects the manual trigger and debug endpoints
-- `STORAGE_ACCOUNT_NAME` - optional. If unset, the app uses the account from
-  `AzureWebJobsStorage__accountName`, which Azure sets automatically when host
-  storage uses managed identity.
+- `GENERATE_SECRET` - long random letters/numbers; protects the manual trigger link
+- `STORAGE_ACCOUNT_NAME` - the storage account holding `latest.json`. Required
+  on this app: Azure configured its own host storage with service-URI
+  settings, so the `AzureWebJobsStorage__accountName` fallback in
+  `lib/dataStore.js` isn't available.
 - `APPLICATIONINSIGHTS_CONNECTION_STRING` - set by Azure when Application Insights is connected
 
 Storage access uses the Function App's system-assigned managed identity, so
@@ -37,16 +37,19 @@ Function App, restricted to the SEN tenant. There is no site password.
 
 ## Deploying
 
-1. `npm install`
-2. In VS Code with the Azure Functions extension: right-click the Function App
-   (`sen-weather-scripts`) -> **Deploy to Function App**.
-3. Test each run type:
-   ```
-   https://<app-address>/api/generate-now?key=YOUR_GENERATE_SECRET&run=am
-   https://<app-address>/api/generate-now?key=YOUR_GENERATE_SECRET&run=afternoon
-   https://<app-address>/api/generate-now?key=YOUR_GENERATE_SECRET&run=pm
-   ```
-4. Open `https://<app-address>/` to check the page.
+Every push to the `azure-migration` branch deploys automatically via GitHub
+Actions (`.github/workflows/azure-migration_sen-weather-scripts.yml`), using a
+user-assigned managed identity - no publish profile or passwords. Check the
+**Actions** tab on GitHub to see each deployment.
+
+After a deploy, test each run type (sign in with your SEN account first):
+```
+https://sen-weather-scripts-cngsdvenffhkafgy.australiaeast-01.azurewebsites.net/api/generate-now?key=YOUR_GENERATE_SECRET&run=am
+https://sen-weather-scripts-cngsdvenffhkafgy.australiaeast-01.azurewebsites.net/api/generate-now?key=YOUR_GENERATE_SECRET&run=afternoon
+https://sen-weather-scripts-cngsdvenffhkafgy.australiaeast-01.azurewebsites.net/api/generate-now?key=YOUR_GENERATE_SECRET&run=pm
+```
+Then open the home page to check the scripts. The manual link is also the
+backup if a scheduled run is missed.
 
 Run types:
 - `am` - today's forecast, 5am read style ("heading for a top of X")
@@ -64,13 +67,9 @@ Run types:
 
 ## Things to verify / likely to need adjusting
 
-- **WillyWeather field names** (`lib/willyweather.js`): temperature/precis
-  parsing is confirmed against a live response. Wind field names
-  (direction/speed, used for VICTWTHR only) are NOT yet confirmed - run
-  `/api/debug-wind?key=YOUR_GENERATE_SECRET` once deployed, check the raw
-  response, and adjust `parseWindDay()` in `lib/willyweather.js` if the
-  field names differ (same process used to fix temperature parsing
-  originally). Delete `src/functions/debugWind.js` once confirmed working.
+- **WillyWeather field names** (`lib/willyweather.js`): temperature, precis
+  and wind parsing are all confirmed against live responses. Wind is only
+  used for VICTWTHR.
 - **Location IDs** (`lib/locations.js`): every town currently does a live
   `search.json` lookup by name each run (cheap, but adds a small delay).
   Once you've confirmed each search resolves to the right town, you can
